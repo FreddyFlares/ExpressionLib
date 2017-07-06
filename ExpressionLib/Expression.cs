@@ -384,14 +384,12 @@ namespace ExpressionLib
 
         /// <summary>
         /// Set the Value of a Variable.
-        /// If it doesn't exist, throw.
+        /// If it doesn't exist do nothing.
         /// </summary>
         public void Let(string name, double value)
         {
             if (variables.ContainsKey(name))
                 variables[name].Value = value;
-            else
-                throw new InvalidOperationException($"No such variable '{name}'");
         }
 
         /// <summary>
