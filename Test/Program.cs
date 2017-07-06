@@ -18,6 +18,7 @@ namespace Test
                 catch (Exception e)
                 {
                     Console.WriteLine(e.Message);
+                    continue;
                 }
                 Console.WriteLine(exp.Evaluate());
             }

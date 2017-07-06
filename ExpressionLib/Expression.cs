@@ -6,10 +6,10 @@ namespace ExpressionLib
 {
     public partial class Expression
     {
-        #region Tokens
-
         enum Priority { LeftBracket, Add, Subtract = Add, Multiply, Divide = Multiply, Power, Function }
         enum Associativity { Left, Right }
+
+        #region Tokens
 
         /// <summary>
         /// Abstract Token base class which must be passed the Expression Stack which Execute references
@@ -324,10 +324,11 @@ namespace ExpressionLib
             {
                 parse();
             }
-            finally
+            catch (Exception)
             {
                 tokens.Clear();
                 tokens.Add(new Number(double.NaN, workStack));
+                throw;
             }
         }
 

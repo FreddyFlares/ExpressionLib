@@ -49,9 +49,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Expression\Expression.csproj">
+    <ProjectReference Include="..\ExpressionLib\ExpressionLib.csproj">
       <Project>{a1f4a2d3-b971-4416-9fe3-5aceb60a641f}</Project>
-      <Name>Expression</Name>
+      <Name>ExpressionLib</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
