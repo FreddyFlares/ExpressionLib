@@ -187,6 +187,28 @@ namespace ExpressionLib
             }
         }
 
+        class Factorial : Function
+        {
+            public Factorial(Stack<double> stack) : base(Priority.Function, Associativity.Right, stack) { }
+
+            public override void Execute()
+            {
+                double d = stack.Pop();
+                int n = (int)d;
+                if (d != n || n < 0)
+                    stack.Push(double.PositiveInfinity);
+                else
+                {
+                    double result = 1;
+                    for (int i = 2; i <= n && !double.IsInfinity(result); i++)
+                    {
+                        result = result * i;
+                    }
+                    stack.Push(result);
+                }
+            }
+        }
+
         class Sqrt : Function
         {
             public Sqrt(Stack<double> stack) : base(Priority.Function, Associativity.Right, stack) { }
@@ -278,6 +300,7 @@ namespace ExpressionLib
         const char exponentiateChar = '^';
         const char unaryPlusChar = '+';
         const char unaryMinusChar = '-';
+        const char factorialChar = '!';
         static readonly string allOperatorChars = string.Concat(plusChar + minusChar, multiplyChar, divideChar, exponentiateChar);
         public string ExpressionString { get; private set; }
         private int p;                                              // Current position into the string for reading Tokens
@@ -294,6 +317,7 @@ namespace ExpressionLib
         Power opPower;
         UnaryMinus opUnaryMinus;
         UnaryPlus opUnaryPlus;
+        Factorial opFactorial;
         Sqrt opSqrt;
         Sin opSin;
         Cos opCos;
@@ -344,6 +368,7 @@ namespace ExpressionLib
             opRightBracket = new RightBracket();
             opUnaryMinus = new UnaryMinus(workStack);
             opUnaryPlus = new UnaryPlus();
+            opFactorial = new Factorial(workStack);
             opSqrt = new Sqrt(workStack);
             opSin = new Sin(workStack);
             opCos = new Cos(workStack);
@@ -442,7 +467,7 @@ namespace ExpressionLib
                 {
                     cmdOp = null;
                     while (operatorStack.Count > 0 && !((cmdOp = operatorStack.Pop()) is LeftBracket))
-                        tokens.Add(cmdOp);
+                        TokenAdd(cmdOp);
                     if (!(cmdOp is LeftBracket))
                         throw new ArgumentException($"Right bracket mismatch");
                 }
@@ -461,13 +486,13 @@ namespace ExpressionLib
                 if ((cmdOp = operatorStack.Pop()) is LeftBracket)
                     throw new ArgumentException($"Missing close bracket(s)");
                 else
-                    tokens.Add(cmdOp);
+                    TokenAdd(cmdOp);
             }
             // Check that there are 2 numbers or variables for every BinaryOperator and 1 number or Variable for every Function
             int expectedNumbers = 1 + tokens.Count((o) => o is BinaryOperator);
             int numbers = tokens.Count((o) => o is Number || o is Variable);
             if (numbers != expectedNumbers)
-                throw new ArgumentException("Syntax error");
+                throw new ArgumentException("Syntax error2");
         }
 
         private void PushOperator(Operator cmdOp)
@@ -478,10 +503,39 @@ namespace ExpressionLib
                 operatorStack.Push(cmdOp);
             else
             {
-                while (operatorStack.Count > 0 && cmdOp.Priority <= operatorStack.Peek().Priority)
-                    tokens.Add(operatorStack.Pop());
-                operatorStack.Push(cmdOp);
+                if (cmdOp == opFactorial)
+                    TokenAdd(cmdOp);
+                else
+                {
+                    while (operatorStack.Count > 0 && cmdOp.Priority <= operatorStack.Peek().Priority)
+                        TokenAdd(operatorStack.Pop());
+                    operatorStack.Push(cmdOp);
+                }
             }
+        }
+
+        // Opimize out sequences that evaluate to constants during the parse
+        private void TokenAdd(Operator cmdOp)
+        {
+            if (cmdOp is Function && tokens[tokens.Count - 1] is Number)
+            {
+                tokens[tokens.Count - 1].Execute();
+                tokens.RemoveAt(tokens.Count - 1);
+                cmdOp.Execute();
+                tokens.Add(new Number(workStack.Pop(), workStack));
+            }
+            else
+            if (cmdOp is BinaryOperator && tokens[tokens.Count - 2] is Number && tokens[tokens.Count - 1] is Number)
+            {
+                tokens[tokens.Count - 2].Execute();
+                tokens[tokens.Count - 1].Execute();
+                tokens.RemoveAt(tokens.Count - 1);
+                tokens.RemoveAt(tokens.Count - 1);
+                cmdOp.Execute();
+                tokens.Add(new Number(workStack.Pop(), workStack));
+            }
+            else
+                tokens.Add(cmdOp);
         }
 
         // Left bracket, number, variable, function, unary +/-
@@ -521,7 +575,7 @@ namespace ExpressionLib
             return null;
         }
 
-        // +, -, *, /, ^, right bracket
+        // +, -, *, /, ^, !, right bracket
         private Token ReadBinOpToken()
         {
             ExpressionString.SkipSpaces(ref p);
@@ -534,6 +588,11 @@ namespace ExpressionLib
             {
                 p++;
                 return opRightBracket;
+            }
+            if (c == factorialChar)
+            {
+                p++;
+                return opFactorial;
             }
             return null;
         }
