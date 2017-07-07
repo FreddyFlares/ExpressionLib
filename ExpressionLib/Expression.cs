@@ -398,7 +398,7 @@ namespace ExpressionLib
             };
         }
 
-        // Used to set up predefined variables and called from the parser to create new variables with a default Value
+        // Used to set up predefined variables and called from the parser to create new variables with a default Value.
         private void let(string name, double value = double.NaN)
         {
             if (!variables.ContainsKey(name))
@@ -411,6 +411,8 @@ namespace ExpressionLib
         /// Set the Value of a Variable.
         /// If it doesn't exist do nothing.
         /// </summary>
+        /// <param name="name">The name of the variable.</param>
+        /// <param name="value">The value of the variable.</param>
         public void Let(string name, double value)
         {
             if (variables.ContainsKey(name))
@@ -418,8 +420,9 @@ namespace ExpressionLib
         }
 
         /// <summary>
-        /// Gets the Value of an existing variable
+        /// Gets the Value of an existing variable.
         /// </summary>
+        /// <param name="name">The name of the variable.</param>
         public double Get(string name)
         {
             if (variables.ContainsKey(name))
@@ -429,14 +432,14 @@ namespace ExpressionLib
         }
 
         /// <summary>
-        /// Evaluate the Expression after it has been parsed
+        /// Evaluate the Expression.
         /// </summary>
-        /// <returns>The value of the Expression</returns>
+        /// <returns>The value of the Expression.</returns>
         public double Evaluate()
         {
-            // If parse has done its job correctly there will be no Exceptions and the stack will finish with the evaluation on top which will be popped and returned
-            // Division by zero will return an Infinity
-            // Other errors return NaN
+            // If parse has done its job correctly there will be no Exceptions and the stack will finish with the evaluation on top which will be popped and returned.
+            // Division by zero will return an Infinity.
+            // Other errors return NaN.
             for (int i = 0; i < tokens.Count; i++)
             {
                 tokens[i].Execute();
@@ -444,13 +447,17 @@ namespace ExpressionLib
             return workStack.Pop();
         }
 
+        // Read tokens until finished or error
         private void parse()
         {
             Token token;
             Operator cmdOp;
+            // As we traverse the expression string we are in one of 2 state modes inside the while loop
+            // Either its legal for next Token to be a BinaryOperator or it isn't
+            // Every Token is legal in only one of the modes, hence the 2 methods that each read legal Tokens for the context we're in
+            // If there's no legal token at the current position then it's a syntax error
             bool expectBinOp = false;
             p = 0;
-            ExpressionString.SkipSpaces(ref p);
             while ((token = (expectBinOp ? ReadBinOpToken() : ReadUnaryOpToken())) != null)
             {
                 if (token is Operator)
@@ -488,30 +495,17 @@ namespace ExpressionLib
                 else
                     TokenAdd(cmdOp);
             }
-            // Check that there are 2 numbers or variables for every BinaryOperator and 1 number or Variable for every Function
-            int expectedNumbers = 1 + tokens.Count((o) => o is BinaryOperator);
-            int numbers = tokens.Count((o) => o is Number || o is Variable);
-            if (numbers != expectedNumbers)
-                throw new ArgumentException("Syntax error2");
         }
 
+        // Push operator onto the stack according to the shunting yard algorithm.
         private void PushOperator(Operator cmdOp)
         {
-            if (operatorStack.Count == 0 || cmdOp.Priority > operatorStack.Peek().Priority)
-                operatorStack.Push(cmdOp);
-            else if (cmdOp.Priority == operatorStack.Peek().Priority && cmdOp.Associativity == Associativity.Right)
-                operatorStack.Push(cmdOp);
-            else
+            if (cmdOp.Associativity == Associativity.Left || operatorStack.Count == 0 || cmdOp.Priority != operatorStack.Peek().Priority)
             {
-                if (cmdOp == opFactorial)
-                    TokenAdd(cmdOp);
-                else
-                {
-                    while (operatorStack.Count > 0 && cmdOp.Priority <= operatorStack.Peek().Priority)
-                        TokenAdd(operatorStack.Pop());
-                    operatorStack.Push(cmdOp);
-                }
+                while (operatorStack.Count > 0 && cmdOp.Priority <= operatorStack.Peek().Priority)
+                    TokenAdd(operatorStack.Pop());
             }
+            operatorStack.Push(cmdOp);
         }
 
         // Opimize out sequences that evaluate to constants during the parse
