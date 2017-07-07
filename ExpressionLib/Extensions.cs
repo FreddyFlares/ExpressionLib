@@ -62,7 +62,7 @@ namespace ExpressionLib
                 p++;
                 while (p < expression.Length && expression[p].IsASCIIDigit()) p++;
                 if (p - a < 2)
-                    throw new FormatException($"Digit expected after the point at position {p}");
+                    throw new FormatException("Digit expected after the point");
             }
             if (p < expression.Length && char.ToLower(expression[p]) == 'e')
             {
