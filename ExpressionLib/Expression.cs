@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ExpressionLib
 {
@@ -194,18 +193,23 @@ namespace ExpressionLib
             public override void Execute()
             {
                 double d = stack.Pop();
-                int n = (int)d;
-                if (d != n || n < 0)
-                    stack.Push(double.PositiveInfinity);
-                else
+                if (d % 1 != 0 || d < 0)
                 {
-                    double result = 1;
-                    for (int i = 2; i <= n && !double.IsInfinity(result); i++)
-                    {
-                        result = result * i;
-                    }
-                    stack.Push(result);
+                    stack.Push(double.NaN);
+                    return;
                 }
+                if (d > int.MaxValue)
+                {
+                    stack.Push(double.PositiveInfinity);
+                    return;
+                }
+                int n = (int)d;
+                double result = 1;
+                for (int i = 2; i <= n && !double.IsInfinity(result); i++)
+                {
+                    result = result * i;
+                }
+                stack.Push(result);
             }
         }
 
@@ -452,10 +456,10 @@ namespace ExpressionLib
         {
             Token token;
             Operator cmdOp;
-            // As we traverse the expression string we are in one of 2 state modes inside the while loop
+            // As we traverse the expression string we are in one of 2 states
             // Either its legal for next Token to be a BinaryOperator or it isn't
-            // Every Token is legal in only one of the modes, hence the 2 methods that each read legal Tokens for the context we're in
-            // If there's no legal token at the current position then it's a syntax error
+            // Every Token is legal in only one of the modes hence the 2 methods that each read legal Tokens for the context we're in
+            // If there's no legal token at the current position then syntax error
             bool expectBinOp = false;
             p = 0;
             while ((token = (expectBinOp ? ReadBinOpToken() : ReadUnaryOpToken())) != null)
