@@ -333,21 +333,26 @@ namespace ExpressionLib
         LeftBracket opLeftBracket;
         RightBracket opRightBracket;
 
-        public Expression(string expression)
+        /// <summary>
+        /// Create an Expression.
+        /// </summary>
+        /// <param name="expString">The maths expression to be evaluated which may include variables.</param>
+        /// <exception cref="Exception">Many possible exceptions including Syntax Error. Evaluating an Expression after an error returns NaN.</exception>
+        public Expression(string expString)
         {
             variables = new Dictionary<string, Variable>();
             workStack = new Stack<double>();
             operatorStack = new Stack<Operator>();
             tokens = new List<Token>();
             CreateOperators();
-            let("pi", Math.PI);
-            let("e", Math.E);
-            let("inf", double.PositiveInfinity);
-            let("NaN", double.NaN);
-            let("Epsilon", double.Epsilon);
-            let("MinValue", double.MinValue);
-            let("MaxValue", double.MaxValue);
-            ExpressionString = expression;
+            set("pi", Math.PI);
+            set("e", Math.E);
+            set("inf", double.PositiveInfinity);
+            set("NaN", double.NaN);
+            set("Epsilon", double.Epsilon);
+            set("MinValue", double.MinValue);
+            set("MaxValue", double.MaxValue);
+            ExpressionString = expString;
             try
             {
                 parse();
@@ -403,7 +408,7 @@ namespace ExpressionLib
         }
 
         // Used to set up predefined variables and called from the parser to create new variables with a default Value.
-        private void let(string name, double value = double.NaN)
+        private void set(string name, double value = double.NaN)
         {
             if (!variables.ContainsKey(name))
             {
@@ -412,27 +417,28 @@ namespace ExpressionLib
         }
 
         /// <summary>
-        /// Set the Value of a Variable.
-        /// If it doesn't exist do nothing.
+        /// Sets the Value of a Variable in the expression.
+        /// Variables not in the expression are ignored.
         /// </summary>
         /// <param name="name">The name of the variable.</param>
         /// <param name="value">The value of the variable.</param>
-        public void Let(string name, double value)
+        public void Set(string name, double value)
         {
             if (variables.ContainsKey(name))
                 variables[name].Value = value;
         }
 
         /// <summary>
-        /// Gets the Value of an existing variable.
+        /// Gets the Value of a variable in the expression.
         /// </summary>
         /// <param name="name">The name of the variable.</param>
+        /// <exception cref="ArgumentException">No such variable</exception>
         public double Get(string name)
         {
             if (variables.ContainsKey(name))
                 return variables[name].Value;
             else
-                throw new InvalidOperationException($"No such variable '{name}'");
+                throw new ArgumentException($"No such variable '{name}'");
         }
 
         /// <summary>
@@ -557,7 +563,7 @@ namespace ExpressionLib
                 string letters = ExpressionString.ReadLetters(ref p);
                 if (functions.ContainsKey(letters))
                     return functions[letters];
-                let(letters);
+                set(letters);
                 return variables[letters];
             }
             if (c == unaryMinusChar)

@@ -8,7 +8,7 @@ namespace Test
     {
         static void Main(string[] args)
         {
-            const int trials = 1000;
+            const int trials = 10000;
             Stopwatch timer = new Stopwatch();
             string expString;
             Expression exp;
@@ -18,6 +18,10 @@ namespace Test
                 try
                 {
                     exp = new Expression(expString);
+                    exp.Set("a", 1);
+                    exp.Set("b", 2);
+                    exp.Set("c", 3);
+                    exp.Set("d", 4);
                 }
                 catch (Exception e)
                 {
