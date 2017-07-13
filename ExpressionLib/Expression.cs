@@ -300,11 +300,10 @@ namespace ExpressionLib
         const char minusChar = '-';
         const char multiplyChar = '*';
         const char divideChar = '/';
-        const char exponentiateChar = '^';
+        const char powerChar = '^';
         const char unaryPlusChar = '+';
         const char unaryMinusChar = '-';
         const char factorialChar = '!';
-        static readonly string allOperatorChars = string.Concat(plusChar + minusChar, multiplyChar, divideChar, exponentiateChar);
         public string ExpressionString { get; private set; }
         private int p;                                              // Current position into the string for reading Tokens
         Dictionary<string, Variable> variables;
@@ -402,7 +401,7 @@ namespace ExpressionLib
                 {minusChar, opSubtract },
                 {multiplyChar, opMultiply },
                 {divideChar, opDivide },
-                {exponentiateChar, opPower }
+                {powerChar, opPower }
             };
         }
 
@@ -462,7 +461,7 @@ namespace ExpressionLib
             Token token;
             Operator cmdOp;
             // As we traverse the expression string we are in one of 2 states
-            // Either its legal for next Token to be a BinaryOperator or it isn't
+            // Either it's legal for next Token to be a BinaryOperator or it isn't
             // Every Token is legal in only one of the modes hence the 2 methods that each read legal Tokens for the context we're in
             // If there's no legal token at the current position then syntax error
             bool expectBinOp = false;
