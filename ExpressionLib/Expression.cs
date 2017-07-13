@@ -78,17 +78,16 @@ namespace ExpressionLib
         }
 
         /// <summary>
-        /// Concrete Variable class reprenting variables parsed in the Expression string
+        /// Concrete Variable class representing variables parsed in the Expression string
         /// </summary>
+        /// <remarks>Variables are stored in the internal variables Dictionary, the Value is updated when the Variable is <see cref="Set(string, double)"/></remarks>
         class Variable : Token
         {
-            //public string Name { get; private set; }
             public double Value { get; set; }
 
             public Variable(double val, Stack<double> stack) : base(stack)
             {
                 Value = val;
-                this.stack = stack;
             }
 
             public override void Execute()
