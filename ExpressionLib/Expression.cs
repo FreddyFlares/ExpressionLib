@@ -516,7 +516,7 @@ namespace ExpressionLib
             operatorStack.Push(cmdOp);
         }
 
-        // Opimize out sequences that evaluate to constants during the parse
+        // Optimize out sequences that evaluate to constants during the parse
         private void TokenAdd(Operator cmdOp)
         {
             if (cmdOp is Function && tokens[tokens.Count - 1] is Number)
