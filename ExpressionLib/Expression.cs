@@ -537,7 +537,11 @@ namespace ExpressionLib
                 tokens.Add(new Number(workStack.Pop(), workStack));
             }
             else
+            // Ignore UnaryPlus
+            if (!(cmdOp is UnaryPlus))
+            {
                 tokens.Add(cmdOp);
+            }
         }
 
         // Left bracket, number, variable, function, unary +/-
