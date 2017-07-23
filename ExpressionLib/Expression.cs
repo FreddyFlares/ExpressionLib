@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace ExpressionLib
 {
-    public partial class Expression
+    public class Expression
     {
         enum Priority { LeftBracket, Add, Subtract = Add, Multiply, Divide = Multiply, Power, Function }
         enum Associativity { Left, Right }
@@ -547,7 +547,7 @@ namespace ExpressionLib
         // Left bracket, number, variable, function, unary +/-
         private Token ReadUnaryOpToken()
         {
-            ExpressionString.SkipSpaces(ref p);
+            SkipSpaces(ExpressionString, ref p);
             if (p >= ExpressionString.Length)
                 return null;
             char c = ExpressionString[p];
@@ -556,13 +556,13 @@ namespace ExpressionLib
                 p++;
                 return opLeftBracket;
             }
-            if (c.IsStartOfNumber())
+            if (IsStartOfNumber(c))
             {
-                return new Number(ExpressionString.ReadDouble(ref p), workStack);
+                return new Number(ReadDouble(ExpressionString, ref p), workStack);
             }
-            if (c.IsASCIILetter())
+            if (IsASCIILetter(c))
             {
-                string letters = ExpressionString.ReadLetters(ref p);
+                string letters = ReadLetters(ExpressionString, ref p);
                 if (functions.ContainsKey(letters))
                     return functions[letters];
                 set(letters);
@@ -584,11 +584,11 @@ namespace ExpressionLib
         // +, -, *, /, ^, !, right bracket
         private Token ReadBinOpToken()
         {
-            ExpressionString.SkipSpaces(ref p);
+            SkipSpaces(ExpressionString, ref p);
             if (p >= ExpressionString.Length)
                 return null;
             char c = ExpressionString[p];
-            if (c.IsBinOperator())
+            if (IsBinOperator(c))
                 return binaryOperators[ExpressionString[p++]];
             if (c == rightBracketChar)
             {
@@ -602,5 +602,65 @@ namespace ExpressionLib
             }
             return null;
         }
+
+        #region Private static helper methods
+        static bool IsASCIIDigit(char c)
+        {
+            return c >= '0' && c <= '9';
+        }
+
+        static bool IsStartOfNumber(char c)
+        {
+            return IsASCIIDigit(c) || c == '.';
+        }
+
+        static bool IsASCIILetter(char c)
+        {
+            return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+        }
+
+        static bool IsBinOperator(char c)
+        {
+            return "+-*/^".IndexOf(c) >= 0;
+        }
+
+        static void SkipSpaces(string expression, ref int p)
+        {
+            while (p < expression.Length && expression[p] == ' ') p++;
+        }
+
+        // Reads contiguous letters from a string starting from position p
+        // p is passed by ref and on return points to the next non ASCII-letter char
+        static string ReadLetters(string expression, ref int p)
+        {
+            int a = p;
+            while (p < expression.Length && IsASCIILetter(expression[p])) p++;
+            return expression.Substring(a, p - a);
+        }
+
+        // Parses a double from inside a string starting from postion p
+        // p is passed by ref and on return points to the first character after the double read
+        static double ReadDouble(string expression, ref int p)
+        {
+            int a = p;
+            while (p < expression.Length && IsASCIIDigit(expression[p])) p++;
+            if (p < expression.Length && expression[p] == '.')
+            {
+                p++;
+                while (p < expression.Length && IsASCIIDigit(expression[p])) p++;
+                if (p - a < 2)
+                    throw new FormatException("Digit expected after the point");
+            }
+            if (p < expression.Length && char.ToLower(expression[p]) == 'e')
+            {
+                p++;
+                if (p < expression.Length && (expression[p] == '+' || expression[p] == '-'))
+                    p++;
+                while (p < expression.Length && IsASCIIDigit(expression[p])) p++;
+            }
+            return Double.Parse(expression.Substring(a, p - a));         // Possible exceptions including OverflowException, FormatException
+        }
+
+        #endregion
     }
 }
