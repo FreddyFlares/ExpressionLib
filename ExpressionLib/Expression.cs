@@ -629,8 +629,8 @@ namespace ExpressionLib
             while (p < expression.Length && expression[p] == ' ') p++;
         }
 
-        // Reads contiguous letters from a string starting from position p
-        // p is passed by ref and on return points to the next non ASCII-letter char
+        // Returns a substring of ASCII letters starting from position p up until the next non-ASCII letter
+        // p is passed by ref and on return points to the next non-ASCII letter char in the main string
         static string ReadLetters(string expression, ref int p)
         {
             int a = p;
@@ -638,8 +638,8 @@ namespace ExpressionLib
             return expression.Substring(a, p - a);
         }
 
-        // Parses a double from inside a string starting from postion p
-        // p is passed by ref and on return points to the first character after the double read
+        // Parses a double from inside a string starting from position p
+        // p is passed by ref and on return points to the character after the double read
         static double ReadDouble(string expression, ref int p)
         {
             int a = p;
@@ -660,7 +660,6 @@ namespace ExpressionLib
             }
             return Double.Parse(expression.Substring(a, p - a));         // Possible exceptions including OverflowException, FormatException
         }
-
         #endregion
     }
 }
