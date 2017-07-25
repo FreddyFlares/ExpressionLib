@@ -304,9 +304,10 @@ namespace ExpressionLib
         const char unaryPlusChar = '+';
         const char unaryMinusChar = '-';
         const char factorialChar = '!';
+        const string binOpsString = "+-*/^";
         public string ExpressionString { get; private set; }
         private int p;                                              // Current position into the string for reading Tokens
-        Dictionary<string, Variable> variables;
+        Dictionary<string, Variable> variables;                     // Dictionary of variables
         Stack<double> workStack;                                    // Stack workspace used when evaluating the RP list (Reverse Polish)
         Stack<Operator> operatorStack;                              // Stack to store the operators during the shunting yard algorithm
         List<Token> tokens;                                         // Final list of Tokens in reverse Polish after parsing the expression
@@ -621,7 +622,7 @@ namespace ExpressionLib
 
         static bool IsBinOperator(char c)
         {
-            return "+-*/^".IndexOf(c) >= 0;
+            return binOpsString.IndexOf(c) >= 0;
         }
 
         static void SkipSpaces(string expression, ref int p)
@@ -651,7 +652,7 @@ namespace ExpressionLib
                 if (p - a < 2)
                     throw new FormatException("Digit expected after the point");
             }
-            if (p < expression.Length && char.ToLower(expression[p]) == 'e')
+            if (p < expression.Length && char.ToUpper(expression[p]) == 'E')
             {
                 p++;
                 if (p < expression.Length && (expression[p] == '+' || expression[p] == '-'))
